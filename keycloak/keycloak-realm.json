@@ -1,0 +1,69 @@
+{
+  "realm": "task-manager",
+  "duplicateEmailsAllowed": false,
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "spring-app",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "spring-app-secret",
+      "redirectUris": [
+        "http://localhost:8081/login/oauth2/code/keycloak"
+      ],
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "bearerOnly": false,
+      "authorizationServicesEnabled": true,
+      "serviceAccountsEnabled": false,
+      "access": {
+        "accessTokenLifespan": 3600,
+        "refreshTokenLifespan": 3600
+      },
+      "attributes": {
+        "oauth2.client.registration.client-id": "spring-app",
+        "oauth2.client.registration.client-secret": "spring-app-secret"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "admin@example.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123"
+        }
+      ],
+      "realmRoles": ["ROLE_ADMIN"]
+    },
+    {
+      "username": "user",
+      "firstName": "John2",
+      "lastName": "Doe2",
+      "email": "user@example.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123"
+        }
+      ],
+      "realmRoles": ["ROLE_USER"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "ROLE_ADMIN"
+      },
+      {
+        "name": "ROLE_USER"
+      }
+    ]
+  }
+}

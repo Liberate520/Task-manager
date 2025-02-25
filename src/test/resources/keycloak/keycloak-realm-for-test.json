@@ -1,0 +1,34 @@
+{
+  "realm": "test-realm",
+  "users": [
+    {
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "testpass"
+        }
+      ],
+      "realmRoles": ["ROLE_USER"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "test-client",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "ROLE_ADMIN"
+      },
+      {
+        "name": "ROLE_USER"
+      }
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: taskManagementSystem
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/task-manager
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/task-manager
+            user-name-attribute: preferred_username
+        registration:
+          keycloak:
+            client-id: spring-app
+            client-secret: spring-app-secret
+            scope:
+              - openid
+              - profile
+              - email
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task-manager
+    username: user
+    password: password
+    jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+  redis:
+    host: localhost
+    port: 6379
+
+
+role:
+  role_add_user: ADMIN
+
