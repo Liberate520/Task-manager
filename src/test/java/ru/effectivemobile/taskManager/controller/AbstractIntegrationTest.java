@@ -1,6 +1,5 @@
 package ru.effectivemobile.taskManager.controller;
 
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -25,9 +24,6 @@ public abstract class AbstractIntegrationTest {
     static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine")
             .withExposedPorts(6379);
 
-//    @Container
-//    static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:22.0.0")
-//            .withRealmImportFile("keycloak/keycloak-realm-for-test.json");
 
     static {
         postgres.start();

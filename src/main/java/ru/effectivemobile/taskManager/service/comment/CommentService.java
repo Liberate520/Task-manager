@@ -37,7 +37,7 @@ public class CommentService {
                     return new NoSuchElementException("Task with id " + commentDto.getTaskId() + " not found");
                 });
 
-        if (!userService.hasAdminRole(principal) && task.getAssignee().getId() != user.getId()) {
+        if (!userService.hasAdminRole(principal) && !task.getAssignee().getId().equals(user.getId())) {
             log.warn("User {} does not have sufficient permissions to comment on task {}", user.getId(), task.getId());
             throw new RoleNotSuitException("User " + user.getPreferredName() + " does not have sufficient permissions");
         }

@@ -9,9 +9,9 @@ import ru.effectivemobile.taskManager.model.dto.user.UserResponseDto;
 @Builder
 @AllArgsConstructor
 public class CommentResponseDto {
-    private long id;
+    private Long id;
     private String text;
     private UserResponseDto author;
-    private long taskId;
+    private Long taskId;
 }
 

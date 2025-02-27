@@ -93,7 +93,7 @@ public class TaskService {
                 .orElseThrow(() -> new NoSuchElementException("Task not found"));
 
         User user = userService.getUserByPrincipal(principal);
-        if (task.getAssignee().getId() != user.getId()) {
+        if (!task.getAssignee().getId().equals(user.getId())) {
             log.warn("User {} is not assignee to this task", user.getPreferredName());
             throw new RoleNotSuitException("User " + user.getPreferredName() + " is not assignee to this task");
         }

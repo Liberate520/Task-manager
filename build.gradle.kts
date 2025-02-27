@@ -46,7 +46,7 @@ dependencies {
     /**
      * Database
      */
-    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.postgresql:postgresql")
 
     /**
      * Swagger
@@ -72,7 +72,6 @@ dependencies {
     implementation(platform("org.testcontainers:testcontainers-bom:1.19.3"))
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
-    testImplementation("com.github.dasniko:testcontainers-keycloak:3.6.0")
 
 }
 

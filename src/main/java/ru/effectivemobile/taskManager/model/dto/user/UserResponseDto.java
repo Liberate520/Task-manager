@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class UserResponseDto {
-    private long id;
+    private Long id;
     private String preferredName;
     private String firstName;
     private String lastName;

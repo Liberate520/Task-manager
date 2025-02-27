@@ -15,11 +15,11 @@ public class UserRequestDto {
 
     @NotNull(message = "{user.create.errors.priority.name_is_null}")
     @Size(max = 100, message = "{user.create.errors.priority.name_size_is_invalid}")
-    private String fName;
+    private String firstName;
 
     @NotNull(message = "{user.create.errors.priority.lastname_is_null}")
     @Size(max = 100, message = "{user.create.errors.priority.lastname_size_is_invalid}")
-    private String lName;
+    private String lastName;
 
     @NotNull(message = "{user.create.errors.priority.email_is_null}")
     @Size(max = 150, message = "{user.create.errors.priority.email_size_is_invalid}")

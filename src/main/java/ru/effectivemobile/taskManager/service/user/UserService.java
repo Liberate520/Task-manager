@@ -35,6 +35,11 @@ public class UserService {
             throw new RoleNotSuitException("User " + preferredName + " does not have sufficient permissions");
         }
 
+        return createUserIfNotExists(userRequestDto);
+    }
+
+    @Transactional
+    public UserResponseDto createUserIfNotExists(UserRequestDto userRequestDto) {
         Optional<User> existingUser = userRepository.findByEmail(userRequestDto.getEmail());
         if (existingUser.isPresent()) {
             log.info("User already exists: {}", existingUser.get());

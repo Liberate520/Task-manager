@@ -1,151 +1,167 @@
 package ru.effectivemobile.taskManager.controller;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.effectivemobile.taskManager.model.dto.task.TaskRequestDto;
+import ru.effectivemobile.taskManager.model.dto.task.TaskResponseDto;
 import ru.effectivemobile.taskManager.model.dto.task.TaskUpdateDto;
-import ru.effectivemobile.taskManager.model.enums.task.TaskPriority;
+import ru.effectivemobile.taskManager.model.enums.task.TaskStatus;
+import ru.effectivemobile.taskManager.service.task.TaskService;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-class TaskRestControllerIntegrationTest extends AbstractIntegrationTest {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-    @LocalServerPort
-    private int port;
+@SpringBootTest
+@AutoConfigureMockMvc
+@ExtendWith(SpringExtension.class)
+class TaskRestControllerIntegrationTest {
 
-    private String jwtToken;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp() {
-        RestAssured.port = port;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-//        jwtToken = JwtTokenUtil.generateToken("testuser", "ROLE_USER");
+    @MockBean
+    private TaskService taskService;
+
+    @Test
+    void findTask_ShouldReturnTask() throws Exception {
+        TaskResponseDto taskResponse = TaskResponseDto.builder()
+                .id(1L)
+                .title("Test Task")
+                .description("Test Description")
+                .status(TaskStatus.CREATED)
+                .build();
+        when(taskService.getTaskById(1L)).thenReturn(taskResponse);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/tasks/1"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Test Task"));
     }
 
     @Test
-    void testCreateTask() {
-        TaskRequestDto taskRequest = TaskRequestDto.builder()
-                .title("Test Task")
-                .description("Test Description")
-                .assigneeId(1L)
-                .priority(TaskPriority.LOW)
+    void updateTask_ShouldReturnUpdatedTask() throws Exception {
+        TaskUpdateDto updateDto = TaskUpdateDto.builder()
+                .title("Updated Task")
+                .description("Updated Description")
                 .build();
+        TaskResponseDto updatedTask = TaskResponseDto.builder()
+                .id(1L)
+                .title("Updated Task")
+                .description("Updated Description")
+                .build();
+        when(taskService.updateTask(1L, updateDto)).thenReturn(updatedTask);
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(taskRequest)
-                .when()
-                .post("/api/v1/tasks")
-                .then()
-                .statusCode(200)
-                .body("title", equalTo("Test Task"))
-                .body("description", equalTo("Test Description"));
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/tasks/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Updated Task"));
     }
 
     @Test
-    void testGetTaskById() {
-        TaskRequestDto taskRequest = TaskRequestDto.builder()
-                .title("Test Task")
-                .description("Test Description")
-                .assigneeId(1L)
-                .priority(TaskPriority.LOW)
-                .build();
-        long taskId = given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(taskRequest)
-                .when()
-                .post("/api/v1/tasks")
-                .then()
-                .extract()
-                .path("id");
+    void deleteTask_ShouldReturnNoContent() throws Exception {
+        Mockito.doNothing().when(taskService).deleteTask(1L);
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .get("/api/v1/tasks/" + taskId)
-                .then()
-                .statusCode(200)
-                .body("id", equalTo((int) taskId))
-                .body("title", equalTo("Test Task"));
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/tasks/1"))
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    void testUpdateTask() {
-        TaskRequestDto taskRequest = TaskRequestDto.builder()
-                .title("Test Task")
-                .description("Test Description")
-                .assigneeId(1L)
-                .priority(TaskPriority.LOW)
+    void updateTaskExecutor_ShouldReturnUpdatedTask() throws Exception {
+        TaskResponseDto updatedTask = TaskResponseDto.builder()
+                .id(1L)
+                .title("Test task")
+                .description("Test description")
+                .status(TaskStatus.IN_PROGRESS)
                 .build();
-        long taskId = given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(taskRequest)
-                .when()
-                .post("/api/v1/tasks")
-                .then()
-                .extract()
-                .path("id");
+        when(taskService.updateTaskExecutor(anyLong(), any(TaskStatus.class), any(Principal.class)))
+                .thenReturn(updatedTask);
 
-        TaskUpdateDto updateRequest = TaskUpdateDto.builder()
-                .title("Test Task")
-                .description("Test Description")
-                .assigneeId(1L)
-                .priority(TaskPriority.LOW)
-                .build();
+        JwtAuthenticationToken principal = mock(JwtAuthenticationToken.class);
+        Jwt jwt = mock(Jwt.class);
+        when(principal.getToken()).thenReturn(jwt);
+        when(jwt.getClaims()).thenReturn(Map.of("realm_access", Map.of("roles",
+                Collections.singletonList("ROLE_USER"))));
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(updateRequest)
-                .when()
-                .patch("/api/v1/tasks/" + taskId)
-                .then()
-                .statusCode(200)
-                .body("title", equalTo("Updated Task"))
-                .body("description", equalTo("Updated Description"));
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/tasks/1/executor")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("\"IN_PROGRESS\"")
+                        .principal(principal))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("IN_PROGRESS"));
     }
 
     @Test
-    void testDeleteTask() {
-        TaskRequestDto taskRequest = TaskRequestDto.builder()
-                .title("Test Task")
-                .description("Test Description")
-                .assigneeId(1L)
-                .priority(TaskPriority.LOW)
+    void getAllTasks_ShouldReturnListOfTasks() throws Exception {
+        TaskResponseDto task1 = TaskResponseDto.builder()
+                .id(1L)
+                .title("Task 1")
+                .description("Description 1")
+                .status(TaskStatus.CREATED)
                 .build();
-        long taskId = given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .contentType(ContentType.JSON)
-                .body(taskRequest)
-                .when()
-                .post("/api/v1/tasks")
-                .then()
-                .extract()
-                .path("id");
+        TaskResponseDto task2 = TaskResponseDto.builder()
+                .id(2L)
+                .title("Task 2")
+                .description("Description 2")
+                .status(TaskStatus.IN_PROGRESS)
+                .build();
+        when(taskService.getAllTasks()).thenReturn(List.of(task1, task2));
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .delete("/api/v1/tasks/" + taskId)
-                .then()
-                .statusCode(204);
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Task 1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[1].title").value("Task 2"));
+    }
 
-        given()
-                .header("Authorization", "Bearer " + jwtToken)
-                .when()
-                .get("/api/v1/tasks/" + taskId)
-                .then()
-                .statusCode(404);
+    @Test
+    void createTask_ShouldReturnCreatedTask() throws Exception {
+        TaskRequestDto taskRequest = TaskRequestDto.builder()
+                .title("New Task")
+                .description("New Description")
+                .build();
+        TaskResponseDto createdTask = TaskResponseDto.builder()
+                .id(1L)
+                .title("New Task")
+                .description("New Description")
+                .status(TaskStatus.CREATED)
+                .build();
+        when(taskService.createTask(any(TaskRequestDto.class), any(Principal.class))).thenReturn(createdTask);
+
+        JwtAuthenticationToken principal = mock(JwtAuthenticationToken.class);
+        Jwt jwt = mock(Jwt.class);
+        when(principal.getToken()).thenReturn(jwt);
+        when(jwt.getClaims()).thenReturn(Map.of("realm_access", Map.of("roles",
+                Collections.singletonList("ROLE_ADMIN"))));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest))
+                        .principal(principal))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("New Task"));
     }
 }

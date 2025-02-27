@@ -19,7 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configuration
 public class SecurityBeans {
@@ -38,21 +37,18 @@ public class SecurityBeans {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/tasks/{taskId:\\d+}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/tasks/{taskId:\\d+}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/tasks").hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/tasks/{taskId:\\d+}/executor").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/tasks/{taskId:\\d+}/executor").hasRole("USER")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/comments").hasAnyRole("ADMIN", "USER")
-
-                        .requestMatchers(HttpMethod.POST, "/api/v1/user").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(Customizer.withDefaults())
-                );
+                .oauth2Login(Customizer.withDefaults())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 
         return http.build();
     }
@@ -63,11 +59,14 @@ public class SecurityBeans {
         return userRequest -> {
             OidcUser oidcUser = oidcUserService.loadUser(userRequest);
 
+            System.out.println("Claims: " + oidcUser.getClaims());
             List<GrantedAuthority> authorities = Optional.ofNullable(oidcUser.getClaimAsStringList("groups"))
                     .orElseGet(List::of)
                     .stream()
-                    .filter(role -> role.equals("ROLE_ADMIN") || role.equals("ROLE_USER"))
+                    .filter(role -> role.equals("ADMIN") || role.equals("USER"))
+                    .map(role -> "ROLE_" + role)
                     .map(SimpleGrantedAuthority::new)
+                    .peek(auth -> System.out.println("Assigned authority: " + auth))
                     .collect(Collectors.toList());
 
             return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
