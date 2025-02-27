@@ -30,7 +30,7 @@ spring:
     initialization-mode: always
     jpa:
       hibernate:
-        ddl-auto: create-drop
+        ddl-auto: update
       show-sql: true
       properties:
         hibernate:
@@ -48,8 +48,3 @@ spring:
 
 role:
   role_add_user: ADMIN
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE

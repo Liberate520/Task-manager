@@ -2,7 +2,6 @@ package ru.effectivemobile.taskManager.mapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.effectivemobile.taskManager.model.dto.comment.CommentResponseDto;
@@ -62,7 +61,7 @@ class TaskMapperTest {
                 .firstName("John")
                 .lastName("Doe")
                 .createdAt(LocalDateTime.of(2024, 1, 25, 0, 0))
-                .updateAt(LocalDateTime.of(2024, 2, 25, 0, 0))
+                .updatedAt(LocalDateTime.of(2024, 2, 25, 0, 0))
                 .email("user@example.ru")
                 .build();
         user2 = User.builder()
@@ -70,7 +69,7 @@ class TaskMapperTest {
                 .firstName("Jane")
                 .lastName("Doe")
                 .createdAt(LocalDateTime.of(2024, 1, 26, 0, 0))
-                .updateAt(LocalDateTime.of(2024, 2, 26, 0, 0))
+                .updatedAt(LocalDateTime.of(2024, 2, 26, 0, 0))
                 .email("admin@example.ru")
                 .build();
         userResponseDto1 = UserResponseDto.builder()
